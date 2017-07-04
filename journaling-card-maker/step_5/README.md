@@ -1,7 +1,7 @@
 Time to add some interaction! Click on the card to see it play out.
 
-   cd path/to/step_4/usage
-   npm run start
+    cd path/to/step_4/usage
+    npm run start
 
 For this, we need some way to maintain the state. For this, it becomes important to understand the fundamental difference between props and state. In react, `this.props` keeps the values that are defined when the component is instantiated and that remain constant over the lifetime of the component's instance. In contrast, `this.state` is used to store values that change as a function of the user interaction or some other side-effect.
 
