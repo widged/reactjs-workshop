@@ -35,6 +35,8 @@ first app:
 See step1 as an example
 
     cd path/to/step_1
+    npm install react
+    npm install react-dom
     npm run start
 
   =>

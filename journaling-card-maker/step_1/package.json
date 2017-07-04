@@ -11,6 +11,6 @@
     "deploy": "yarn build && firebase deploy"
   },
   "dependencies": {
-    "d3": "^4.9.1"
+
   }
 }
