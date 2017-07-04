@@ -32,13 +32,23 @@ first app:
     render(React.createElement(App), document.querySelector('#app'));
 
 
-See step1 as an example
+To make things easier, I have provided examples. Simply select the download option for this project on github, then, from a terminal window, navigate to
+
+   cd path/to/reactjs-workshop/journaling-card-maker/
+
+then execute
 
     cd path/to/step_1
     npm install react
     npm install react-dom
     npm run start
 
-  =>
+After a short time, you should see:
 
   The app is running at http://localhost:3000/
+
+Open your a new browser and copy and paste http://localhost:3000/ in the url field.
+
+To build a deployment ready version of your project, you can run
+
+    npm run build
