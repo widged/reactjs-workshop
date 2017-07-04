@@ -1,0 +1,49 @@
+/* when printing from home printer */
+
+journaling-card {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	box-sizing: border-box;
+	font-family: 'Open Sans', sans-serif;
+	font-style:'condensed light';
+	font-size: 11pt;
+	border: 1px solid  #afafaf;
+}
+
+
+journaling-card.size-credit {
+	width: 49mm;
+	height: 78mm;
+	margin: 8px 0;
+}
+
+journaling-card.size-key  {
+	width: 55mm;
+	height: 84mm;
+}
+
+journaling-card.size-photo {
+	width: 100mm;
+	height: 148mm;
+}
+
+
+journaling-card.size-box {
+	width: 61mm;
+	height: 96mm;
+}
+
+journaling-card img {
+  width: 90%;
+  text-align: center;
+}
+
+/*
+seamless-background {
+	display: block;
+	opacity: 0.2;
+	width: 100%;
+	height: 100%;
+}
+*/
