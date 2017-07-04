@@ -1,6 +1,6 @@
-1. Creating a reactjs application, based on es6, with no configuration
+# Creating a reactjs application, based on es6, with no configuration
 
-a) nwb
+## nwb
 
 https://github.com/insin/nwb
 

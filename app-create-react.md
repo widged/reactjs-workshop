@@ -1,4 +1,6 @@
-b) react app
+# Creating a reactjs application, based on es6, with minimum configuration
+
+## react-create-app official project
 
 https://facebook.github.io/react/blog/2016/07/22/create-apps-with-no-configuration.html
 
