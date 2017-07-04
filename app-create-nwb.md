@@ -52,3 +52,12 @@ Open your a new browser and copy and paste http://localhost:3000/ in the url fie
 To build a deployment ready version of your project, you can run
 
     npm run build
+
+
+NOTE. When working within a VM make sure to add the following to your `package.json` files to avoid `Invalid Host header` error.
+
+    "start": "nwb serve-react-app --host your.ip.addr.ess index.js --reload",
+
+=>
+
+The app is running at http://your.ip.addr.ess:3000/
