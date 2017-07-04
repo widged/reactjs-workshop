@@ -53,7 +53,3 @@ http://javascript.tutorialhorizon.com/2014/09/13/execution-sequence-of-a-react-c
           );
         }
     }
-
-### Redux
-
-See notes
