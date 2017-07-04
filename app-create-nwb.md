@@ -30,3 +30,9 @@ first app:
       }
     }
     render(React.createElement(App), document.querySelector('#app'));
+
+
+See step1 as an example
+
+  cd path/to/step_1
+  npm run start
