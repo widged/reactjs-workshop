@@ -34,5 +34,5 @@ first app:
 
 See step1 as an example
 
-  cd path/to/step_1
-  npm run start
+    cd path/to/step_1
+    npm run start
