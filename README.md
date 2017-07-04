@@ -1,6 +1,8 @@
 # reactjs-workshop
 Resources for the reactjs workshop, Wellington July 2017
 
+For the quickest and most painless way to start writing a reactjs app, head to
+https://github.com/widged/reactjs-workshop/blob/master/app-create-nwb.md. 
 
 ## Things to know
 
