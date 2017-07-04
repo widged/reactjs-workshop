@@ -42,3 +42,11 @@ See step1 as an example
   =>
 
   The app is running at http://localhost:3000/
+
+Note: When working within a VM make sure to add the following to your `package.json` files to avoid `Invalid Host header` error.
+
+    "start": "nwb serve-react-app --host your.ip.addr.ess index.js --reload",
+
+  =>
+
+  The app is running at http://your.ip.addr.ess:3000/
