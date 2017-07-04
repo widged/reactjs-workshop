@@ -36,3 +36,7 @@ See step1 as an example
 
     cd path/to/step_1
     npm run start
+
+  =>
+
+  The app is running at http://localhost:3000/
