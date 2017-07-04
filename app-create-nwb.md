@@ -8,13 +8,13 @@ A toolkit for React, Preact, Inferno & vanilla JS apps, React libraries and othe
 
 with npm:
 
-    npm install -g nwb@next
+    npm install -g nwb
     cd path/to/projectfolder
     npm install --save-dev nwb
 
 with yarn:
 
-    yarn global add nwb@next
+    yarn global add nwb
     cd path/to/projectfolder
     yarn add nwb
 
