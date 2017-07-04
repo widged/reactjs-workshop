@@ -1,0 +1,13 @@
+{
+  "name": "card-maker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "nwb build-react-app index.js",
+    "clean": "nwb clean-app",
+    "start": "nwb serve-react-app index.js --reload",
+    "lint": "standard --verbose | snazzy",
+    "format": "standard --fix",
+    "deploy": "yarn build && firebase deploy"
+  }
+}
