@@ -254,10 +254,11 @@ export const getVisibleTodos = createSelector(
 )
 ```
 
-------------
 
-Resources
+## Resources
 
 https://github.com/xgrommx/awesome-redux
 https://github.com/markerikson/react-redux-links
 https://medium.com/@sapegin/react-and-redux-single-page-applications-resources-22cd859b0c1d
+
+

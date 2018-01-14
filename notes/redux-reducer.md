@@ -673,3 +673,8 @@ If the reducer receives undefined as the state argument it must returns what it 
 Selectors are one of the most important constructs in Redux that people tend to overlook. A selector is a pure function that takes the global state as argument and returns some transformation over it. Selectors are tightly coupled to reducers and are located inside reducer.js. They allow us to perform a few calculations on data before it’s being consumed by the view. In our methodology, we take this idea even further. Every time anyone needs to access part of the state (like in mapStatetoProps), they need to go through a selector.
 
 Why? The idea is to encapsulate the internal structure of the app state and hide it from views. Imagine that we decide later on to change the internal state structure. We wouldn’t want to go over all the views in our app and refactor them. Passing through a selector will allow us to confine the refactoring to the reducer only.
+
+
+## Extras
+
+Just as a database view can be materialized by creating an index on it, we have a (somewhat) similar way to avoid recomputing function calls in JavaScript: memoization. Since our selector here is just a regular function, we can memoize it as we can any other function. Of course we don’t want to manually do this; fortunately there’s a library we can use to do it for us: reselect.

@@ -4,7 +4,9 @@ The Redux store is just a plain object with a few methods.
 
 http://redux.js.org/docs/api/Store.html
 
-In Redux, all the application state is stored as a single object. It's a good idea to think of its shape before writing any code. What's the minimal representation of your app's state as an object?
+In Redux, by convention, a store holds the whole state tree of your application. A store is not a class. It's just an object with a few methods on it. It's a good idea to think of the shape of the state tree before writing any code. 
+
+The only way to change the state inside the store is to dispatch an action on it.
 
 The Store is the object that brings them together. The store has the following responsibilities:
 
@@ -16,22 +18,23 @@ The Store is the object that brings them together. The store has the following r
 
 It's important to note that you'll only have a single store in a Redux application. When you want to split your data handling logic, you'll use reducer composition instead of many stores.
 
+## `redux.createStore()` to create a store
+
+To create it, pass your root reducing function to createStore.
+
 ```
 import { createStore } from 'redux'
 import todoApp from './reducers'
 let store = createStore(todoApp)
 ```
+
 You may optionally specify the initial state as the second argument to createStore(). This is useful for hydrating the state of the client to match the state of a Redux application running on the server.
 
 ```
 let store = createStore(todoApp, window.STATE_FROM_SERVER)
 ```
 
-A store holds the whole state tree of your application.
-The only way to change the state inside it is to dispatch an action on it.
-
-A store is not a class. It's just an object with a few methods on it.
-To create it, pass your root reducing function to createStore.
+### vanilla store vs middleware
 
 The “vanilla” store implementation you get by calling createStore only supports plain object actions and hands them immediately to the reducer.
 
@@ -46,12 +49,12 @@ However, if you wrap createStore with applyMiddleware, the middleware can interp
 
 Note “Reducers may not dispatch actions.”
 
-### getState()
+### `getState()`
 
 Returns the current state tree of your application.
 It is equal to the last value returned by the store's reducer.
 
-### dispatch(action)
+### `dispatch(action)`
 
 Dispatches an action. This is the only way to trigger a state change.
 
@@ -74,7 +77,7 @@ store.dispatch(addTodo('Read the docs'))
 store.dispatch(addTodo('Read about the middleware'))
 ```
 
-### subscribe(listener)
+### `subscribe(listener)`
 
 Adds a change listener. It will be called any time an action is dispatched, and some part of the state tree may potentially have changed. You may then call getState() to read the current state tree inside the callback.
 
@@ -105,12 +108,11 @@ Note 2. The subscriptions are snapshotted just before every dispatch() call. If 
 
 Note 3. The listener should not expect to see all state changes, as the state might have been updated multiple times during a nested dispatch() before the listener is called. It is, however, guaranteed that all subscribers registered before the dispatch() started will be called with the latest state by the time it exits.
 
-### replaceReducer(nextReducer)
+### `replaceReducer(nextReducer)`
 
 Replaces the reducer currently used by the store to calculate the state.
 
 It is an advanced API. You might need this if your app implements code splitting, and you want to load some of the reducers dynamically. You might also need this if you implement a hot reloading mechanism for Redux.
-
 
 
 ## Update logic
@@ -139,17 +141,10 @@ store.dispatch(setVisibilityFilter(VisibilityFilters.SHOW_COMPLETED))
 unsubscribe()
 ```
 
-----
+## Tips
 
-https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f
+We suggest that you keep your state as normalized as possible, without any nesting. Storing subjects as a hash, keyed by _id yields a much better result. Keep every entity in an object stored with an ID as a key, and use IDs to reference it from other entities, or lists. Think of the app’s state as a database. This approach is described in normalizr’s documentation in detail. For example, keeping todosById: { id -> todo } and todos: array<id> inside the state would be a better idea in a real app, but we’re keeping the example simple. [source](https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f)
 
-In a more complex app, you’re going to want different entities to reference each other. We suggest that you keep your state as normalized as possible, without any nesting. Keep every entity in an object stored with an ID as a key, and use IDs to reference it from other entities, or lists. Think of the app’s state as a database. This approach is described in normalizr’s documentation in detail. For example, keeping todosById: { id -> todo } and todos: array<id> inside the state would be a better idea in a real app, but we’re keeping the example simple.
+If you were to adopt nesting that reflect the hierarchy of UI views, a downside would be that every single time our views change, the store tree  will be re-worked.
 
-We suggest that you keep your state as normalized as possible, without any nesting.
-is surprisingly helpful. Storing subjects as a hash, keyed by _id yields a much better result.
 
-Pushing the DBMS analogy further, we’ve basically created a view on our data. The downside is that every single time our store changes, the subject stacking will be re-worked, just as the underlying queries are re-executed whenever you query a view.
-
-Just as a database view can be materialized by creating an index on it, we have a (somewhat) similar way to avoid recomputing function calls in JavaScript: memoization. Since our selector here is just a regular function, we can memoize it as we can any other function. Of course we don’t want to manually do this; fortunately there’s a library we can use to do it for us: reselect.
-
-Now our subjects are completely re-stacked whenever any individual subject is changed. Returning to the indexed view analogy, this would be like an entire clustered index being re-built from scratch whenever any item in the underlying tables is changed — which of course modern engines don’t. It’s doubtful this will matter, but if this code were somehow performance intense / crucial, there’s nothing stopping you from manually memoizing the function, and only recomputing the portions of the tree that actually changed. Naturally this wouldn’t be easy, and should only be done if actually needed.
