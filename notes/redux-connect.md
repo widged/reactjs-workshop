@@ -1,3 +1,34 @@
+Here is a final example that shows the connect function :
+
+```
+import {connect} from 'react-redux';
+import Template from '../components/Template.js';
+import {actionCreator1, actionCreator2} from '../actions/main.js';
+
+const mapStateToProps = ({ reducer1, reducer2}) => ({reducer1, reducer2 });
+
+const bindActionsToDispatch = dispatch => ({
+    actionCreator1 : () => {dispatch(actionCreator1())},
+    actionCreator2 : (e) => {dispatch(actionCreator2(e))}
+});
+
+const mergeProps = (state, actions, {notebook, note}) => ({
+    ...state,
+    ...actions,
+    onLoad: notebook && note
+      ? () => {
+        return (
+          actions.initActiveNotebookAndNote({notebook, note})
+        )
+      }
+      : null
+});
+
+connect(mapStateToProps, mapDispatchToProps, mergeProps, { withRef: true })(Template);
+```
+
+--------
+
 connect(mapStateToProps, mapDispatchToProps, mergeProps, options)(component);
 
 	.	mapStateToProps
