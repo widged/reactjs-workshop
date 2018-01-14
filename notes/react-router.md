@@ -1,5 +1,3 @@
-[WIP - Random notes] 
-
 # React Router
 
 
