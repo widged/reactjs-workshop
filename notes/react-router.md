@@ -1,58 +1,75 @@
 [WIP - Random notes] 
 
-Usage with React Router
+# React Router
 
-So you want to do routing with your Redux app. You can use it with React Router. Redux will be the source of truth for your data and React Router will be the source of truth for your URL. In most of the cases, it is fine to have them separate unless you need to time travel and rewind actions that triggers the change URL.
 
-Installing React Router
+React Router can be used to do routing with your Redux app. Redux will be the source of truth for your data and React Router will be the source of truth for your URL. In most of the cases, it is fine to have them separate unless you need to time travel and rewind actions that triggers the change URL.
+
+## Installing React Router
 
 react-router is available on npm . This guides assumes you are using react-router@^2.7.0.
 
+```
 npm install --save react-router
+```
 
-Configuring the Fallback URL
-
-Before integrating React Router, we need to configure our development server. Indeed, our development server may be unaware of the declared routes in React Router configuration. For example, if you access /todos and refresh, your development server needs to be instructed to serve index.html because it is a single-page app. Here's how to enable this with popular development servers.
-
-Note on Create React App
+## Configuring the Fallback URL
 
 If you are using Create React App, you won't need to configure a fallback URL, it is automatically done.
 
-Configuring Express
+Otherwise, before integrating React Router, we need to configure our development server. Indeed, our development server may be unaware of the declared routes in React Router configuration. For example, if you access /todos and refresh, your development server needs to be instructed to serve index.html because it is a single-page app. Here's how to enable this with popular development servers.
+
+### Configuring Express
 
 If you are serving your index.html from Express:
 
-  app.get('/*', (req,res) => {
-    res.sendfile(path.join(__dirname, 'index.html'))
-  })
-Configuring WebpackDevServer
+```
+app.get('/*', (req,res) => {
+  res.sendfile(path.join(__dirname, 'index.html'))
+})
+```
+
+###  Configuring WebpackDevServer
 
 If you are serving your index.html from WebpackDevServer: You can add to your webpack.config.dev.js:
 
-  devServer: {
-    historyApiFallback: true,
-  }
-Connecting React Router with Redux App
+```
+devServer: {
+  historyApiFallback: true,
+}
+```
 
-Along this chapter, we will be using the Todos example. We recommend you to clone it while reading this chapter.
+## Connecting React Router with Redux App
 
 First we will need to import <Router /> and <Route /> from React Router. Here's how to do it:
 
+```
 import { Router, Route, browserHistory } from 'react-router';
+```
+
 In a React app, usually you would wrap <Route /> in <Router /> so that when the URL changes, <Router /> will match a branch of its routes, and render their configured components. <Route /> is used to declaratively map routes to your application's component hierarchy. You would declare in path the path used in the URL and in component the single component to be rendered when the route matches the URL.
 
+```
 const Root = () => (
   <Router>
     <Route path="/" component={App} />
   </Router>
 );
+```
+
 However, in our Redux App we will still need <Provider />. <Provider /> is the higher-order component provided by React Redux that lets you bind Redux to React (see Usage with React).
+
+NOTE. Best to avoid to rely blindly on Provider. See redux connect for more on this. 
 
 We will then import the <Provider /> from React Redux:
 
+```
 import { Provider } from 'react-redux';
+```
+
 We will wrap <Router /> in <Provider /> so that route handlers can get access to the store.
 
+```
 const Root = ({ store }) => (
   <Provider store={store}>
     <Router>
@@ -60,21 +77,32 @@ const Root = ({ store }) => (
     </Router>
   </Provider>
 );
+```
+
 Now the <App /> component will be rendered if the URL matches '/'. Additionally, we will add the optional (:filter) parameter to /, because we will need it further on when we try to read the parameter (:filter) from the URL.
 
+```
 <Route path="/(:filter)" component={App} />
+```
+
 You will probably want to remove the hash from the URL (e.g: http://localhost:3000/#/?_k=4sbb0i). For doing this, you will need to also import browserHistory from React Router:
 
+```
 import { Router, Route, browserHistory } from 'react-router';
+```
+
 and pass it to the <Router /> in order to remove the hash from the URL:
 
+```
     <Router history={browserHistory}>
       <Route path="/(:filter)" component={App} />
     </Router>
+```
+    
 Unless you are targeting old browsers like IE9, you can always use browserHistory.
 
-components/Root.js
-
+```
+// components/Root.js
 import React, { PropTypes } from 'react';
 import { Provider } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
@@ -93,10 +121,12 @@ Root.propTypes = {
 };
 
 export default Root;
+```
+
 We will also need to refactor index.js to render the <Root /> component to the DOM.
 
-index.js
-
+```
+// index.js
 import React from 'react';
 import { render } from 'react-dom'
 import { createStore } from 'redux'
@@ -109,12 +139,14 @@ render(
     <Root store={store} />,
     document.getElementById('root')
 )
-Navigating with React Router
+```
+
+## Navigating with React Router
 
 React Router comes with a <Link /> component that lets you navigate around your application. In our example, we can wrap <Link /> with a new container component <FilterLink /> so as to dynamically change the URL. The activeStyle={} property lets us apply a style on the active state.
 
-containers/FilterLink.js
-
+```
+// containers/FilterLink.js
 import React from 'react';
 import { Link } from 'react-router';
 
@@ -131,7 +163,10 @@ const FilterLink = ({ filter, children }) => (
 );
 
 export default FilterLink;
-components/Footer.js
+```
+
+```
+// components/Footer.js
 
 import React from 'react'
 import FilterLink from '../containers/FilterLink'
@@ -153,14 +188,16 @@ const Footer = () => (
         </FilterLink>
     </p>
 );
-
 export default Footer
+```
+
 Now if you click on <FilterLink /> you will see that your URL will change between '/SHOW_COMPLETED', '/SHOW_ACTIVE', and '/'. Even if you are going back with your browser, it will use your browser's history and effectively go to your previous URL.
 
-Reading From the URL
+## Reading From the URL
 
 Currently, the todo list is not filtered even after the URL changed. This is because we are filtering from <VisibleTodoList />'s mapStateToProps() is still bound to the state and not to the URL. mapStateToProps has an optional second argument ownProps that is an object with every props passed to <VisibleTodoList />
 
+```
 containers/VisibleTodoList.js
 
 const mapStateToProps = (state, ownProps) => {
@@ -168,6 +205,8 @@ const mapStateToProps = (state, ownProps) => {
     todos: getVisibleTodos(state.todos, ownProps.filter) // previously was getVisibleTodos(state.todos, state.visibilityFilter)
   };
 };
+```
+
 Right now we are not passing anything to <App /> so ownProps is an empty object. To filter our todos according to the URL, we want to pass the URL params to <VisibleTodoList />.
 
 When previously we wrote: <Route path="/(:filter)" component={App} />, it made available inside App a params property.
@@ -176,8 +215,9 @@ params property is an object with every param specified in the url. e.g: params 
 
 Note that we are using ES6 destructuring on the properties to pass in params to <VisibleTodoList />.
 
-components/App.js
 
+```
+# components/App.js
 const App = ({ params }) => {
   return (
     <div>
@@ -189,11 +229,10 @@ const App = ({ params }) => {
     </div>
   );
 };
-Next Steps
+```
 
-Now that you know how to do basic routing, you can learn more about React Router API
 
-Note About Other Routing Libraries
+## Note About Other Routing Libraries
 
 Redux Router is an experimental library, it lets you keep entirely the state of your URL inside your redux store. It has the same API with React Router API but has a smaller community support than react-router.
 
@@ -201,23 +240,15 @@ React Router Redux creates a binding between your redux app and react-router and
 
 ---------------------------
 
-http://jamesknelson.com/routing-with-raw-react/
+[source](http://jamesknelson.com/routing-with-raw-react/)
 
 # Building a Router with Raw React
 
-posted in Javascript, React	on October 5, 2015 by	James K Nelson
-
-So you’ve decided to build a Single Page App with React, and everything seems to be going dandy. You’ve got yourself some wireframes, a HTML file and a few components, and then you decide to add some routes. Easy, right?
-
-Well, thats what you thought until you started reading the internet. But now you’re worrying about isomorphism and the HTML 5 history API and even how to pass props to your view components again. And if you thought learning all this was painful, imagine rewriting your application when the routing library’s API breaks in a few weeks.
-
-Routing doesn’t have to be complicated, so why stress yourself out with libraries when a hand-rolled router can take less than 20 lines? Especially seeing that if you’d have just kept following this guide, you would have had something working in only two minutes…
-
+Why stress yourself out with libraries when a hand-rolled router can take less than 20 lines? 
 
 ## Hash-based routing in two minutes
 
 Routing means doing something in response to a change in the browser’s current URL. There are two ways you can accomplish this:
-
 * pushState routing, using the HTML5 History API
 * hash-based routing, using the portion of the page’s URL starting with #, i.e. the hash.
 
@@ -1301,25 +1332,26 @@ Now don’t get me wrong – react-router is a great tool for a number of use ca
 
 Resources
 
-
-https://github.com/reactjs/react-router-redux
-https://github.com/deadlyicon/simple-react-router
-https://codepen.io/danbuda/post/simple-react-router
-https://www.npmjs.com/package/redux-simple-router
-https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf
-http://jamesknelson.com/simple-routing-redux-react/
-https://www.kirupa.com/react/creating_single_page_app_react_using_react_router.htm
-https://auth0.com/blog/react-router-alternatives/
-https://github.com/STRML/react-router-component
-https://github.com/larrymyers/react-mini-router
-https://www.kriasoft.com/universal-router/
-http://router5.github.io/
-https://www.kirupa.com/react/creating_single_page_app_react_using_react_router.htm
+- [react-router-redux](https://github.com/reactjs/react-router-redux)
+- [simple-react-router](https://github.com/deadlyicon/simple-react-router)
+- [simple-react-router](https://codepen.io/danbuda/post/simple-react-router)
+- [redux-simple-router](https://www.npmjs.com/package/redux-simple-router)
+- [a-simple-react-router-v4-tutorial-7f23ff27adf](https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf)
+- [simple-routing-redux-react](http://jamesknelson.com/simple-routing-redux-react/)
+- [creating_single_page_app_react_using_react_router.htm](https://www.kirupa.com/react/creating_single_page_app_react_using_react_router.htm)
+- [react-router-alternatives](https://auth0.com/blog/react-router-alternatives/)
+- [react-router-component](https://github.com/STRML/react-router-component)
+- [react-mini-router](https://github.com/larrymyers/react-mini-router)
+- [universal-router](https://www.kriasoft.com/universal-router/)
+- [router5.github.io](http://router5.github.io/)
+- [creating_single_page_app_react_using_react_router.htm](https://www.kirupa.com/react/creating_single_page_app_react_using_react_router.htm
 
 Utilities
+- [urllite.js](https://github.com/hzdg/urllite.js)
+- [path-to-regexp](https://github.com/component/path-to-regexp)
+- [uniloc.html](http://unicornstandard.com/packages/uniloc.html)
 
-https://github.com/hzdg/urllite.js
-https://github.com/component/path-to-regexp
-http://unicornstandard.com/packages/uniloc.html
+```
 import createHistory from 'history/lib/createBrowserHistory';
 import useQueries from 'history/lib/useQueries';
+```
