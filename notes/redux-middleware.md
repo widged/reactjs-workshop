@@ -1,3 +1,5 @@
+[WIP - Random notes] 
+
 ## Middleware
 
 Reducer functions are only concerned with executing logic around this deletion. They typically don’t care who did it, how long it took, or logging the before and after effects of the state changes. This is where middleware can help us to address these non-core concerns.

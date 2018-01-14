@@ -1,3 +1,5 @@
+[WIP - Random notes] 
+
 https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
 
 You’ll find your components much easier to reuse and reason about if you divide them into two categories. I call them Container and Presentational components* but I also heard Fat and Skinny, Smart and Dumb, Stateful and Pure, Screens and Components, etc. These all are not exactly the same, but the core idea is similar.

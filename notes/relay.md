@@ -1,3 +1,5 @@
+[WIP - Random notes] 
+
 https://facebook.github.io/react/blog/2015/03/19/building-the-facebook-news-feed-with-relay.html
 
 At React.js Conf in January we gave a preview of Relay, a new framework for building data-driven applications in React. In this post, we'll describe the process of creating a Relay application. This post assumes some familiarity with the concepts of Relay and GraphQL, so if you haven't already we recommend reading our introductory blog post or watching the conference talk.
