@@ -1,8 +1,7 @@
-# Store
+# Redux :: Store
 
 The Redux store is just a plain object with a few methods.
 
-http://redux.js.org/docs/api/Store.html
 
 In Redux, by convention, a store holds the whole state tree of your application. A store is not a class. It's just an object with a few methods on it. It's a good idea to think of the shape of the state tree before writing any code. 
 
@@ -40,7 +39,9 @@ The “vanilla” store implementation you get by calling createStore only suppo
 
 However, if you wrap createStore with applyMiddleware, the middleware can interpret actions differently, and provide support for dispatching async actions. Async actions are usually asynchronous primitives like Promises, Observables, or thunks.
 
-## Store methods
+## API
+
+http://redux.js.org/docs/api/Store.html
 
 * getState()
 * dispatch(action)

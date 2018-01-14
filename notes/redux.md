@@ -254,7 +254,6 @@ export const getVisibleTodos = createSelector(
 )
 ```
 
-
 ## Resources
 
 https://github.com/xgrommx/awesome-redux

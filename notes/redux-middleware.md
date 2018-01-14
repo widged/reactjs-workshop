@@ -485,3 +485,221 @@ export default function thunkMiddleware({ dispatch, getState }) {
          next(action);
 }
 This should be familiar to you now that you have already seen how Redux middleware works. If the action is a function it will be called with the dispatch and getState function. Otherwise, this is a normal action that needs to be dispatched to the store. Also check out the Async example in the Redux repo for more details. Another middleware alternative for working with Promises in your actions is redux-promise. I think it is just a matter of preference around which middleware solution you choose.
+
+
+# Middleware as extension point
+
+Redux has a rich and fast-growing ecosystem. This is because it provides a few extension points such as middleware. It was designed with use cases such as logging, support for Promises, Observables, routing, immutability dev checks, persistence, etc, in mind. Not all of these will turn out to be useful, but it's nice to have access to a set of tools that can be easily combined to work together.
+
+ Middleware is some code you can put between the framework receiving a request, and the framework generating a response.
+
+ It provides a third-party extension point between dispatching an action, and the moment it reaches the reducer. People use Redux middleware for logging, crash reporting, talking to an asynchronous API, routing, and more.
+
+Example
+
+ ```
+ const logger = store => next => action => {
+   console.log('dispatching', action)
+   let result = next(action)
+   console.log('next state', store.getState())
+   return result
+ }
+
+ const crashReporter = store => next => action => {
+   try {
+     return next(action)
+   } catch (err) {
+     console.error('Caught an exception!', err)
+     Raven.captureException(err, {
+       extra: {
+         action,
+         state: store.getState()
+       }
+     })
+     throw err
+   }
+ }
+ ```
+
+ Here's how to apply it to a Redux store:
+
+ ```
+ import { createStore, combineReducers, applyMiddleware } from 'redux'
+
+ let todoApp = combineReducers(reducers)
+ let store = createStore(
+   todoApp,
+   // applyMiddleware() tells createStore() how to handle middleware
+   applyMiddleware(logger, crashReporter)
+ )
+ That's it! Now any actions dispatched to the store instance will flow through logger and crashReporter:
+
+ // Will flow through both logger and crashReporter middleware!
+ store.dispatch(addTodo('Use Redux'))
+```
+
+### Seven Examples
+
+If your head boiled from reading the above section, imagine what it was like to write it. This section is meant to be a relaxation for you and me, and will help get your gears turning.
+
+Each function below is a valid Redux middleware. They are not equally useful, but at least they are equally fun.
+
+```
+ /**
+  * Logs all actions and states after they are dispatched.
+  */
+ const logger = store => next => action => {
+   console.group(action.type)
+   console.info('dispatching', action)
+   let result = next(action)
+   console.log('next state', store.getState())
+   console.groupEnd(action.type)
+   return result
+ }
+
+ /**
+  * Sends crash reports as state is updated and listeners are notified.
+  */
+ const crashReporter = store => next => action => {
+   try {
+     return next(action)
+   } catch (err) {
+     console.error('Caught an exception!', err)
+     Raven.captureException(err, {
+       extra: {
+         action,
+         state: store.getState()
+       }
+     })
+     throw err
+   }
+ }
+
+ /**
+  * Schedules actions with { meta: { delay: N } } to be delayed by N milliseconds.
+  * Makes `dispatch` return a function to cancel the timeout in this case.
+  */
+ const timeoutScheduler = store => next => action => {
+   if (!action.meta || !action.meta.delay) {
+     return next(action)
+   }
+
+   let timeoutId = setTimeout(
+     () => next(action),
+     action.meta.delay
+   )
+
+   return function cancel() {
+     clearTimeout(timeoutId)
+   }
+ }
+
+ /**
+  * Schedules actions with { meta: { raf: true } } to be dispatched inside a rAF loop
+  * frame.  Makes `dispatch` return a function to remove the action from the queue in
+  * this case.
+  */
+ const rafScheduler = store => next => {
+   let queuedActions = []
+   let frame = null
+
+   function loop() {
+     frame = null
+     try {
+       if (queuedActions.length) {
+         next(queuedActions.shift())
+       }
+     } finally {
+       maybeRaf()
+     }
+   }
+
+   function maybeRaf() {
+     if (queuedActions.length && !frame) {
+       frame = requestAnimationFrame(loop)
+     }
+   }
+
+   return action => {
+     if (!action.meta || !action.meta.raf) {
+       return next(action)
+     }
+
+     queuedActions.push(action)
+     maybeRaf()
+
+     return function cancel() {
+       queuedActions = queuedActions.filter(a => a !== action)
+     }
+   }
+ }
+
+ /**
+  * Lets you dispatch promises in addition to actions.
+  * If the promise is resolved, its result will be dispatched as an action.
+  * The promise is returned from `dispatch` so the caller may handle rejection.
+  */
+ const vanillaPromise = store => next => action => {
+   if (typeof action.then !== 'function') {
+     return next(action)
+   }
+
+   return Promise.resolve(action).then(store.dispatch)
+ }
+
+ /**
+  * Lets you dispatch special actions with a { promise } field.
+  *
+  * This middleware will turn them into a single action at the beginning,
+  * and a single success (or failure) action when the `promise` resolves.
+  *
+  * For convenience, `dispatch` will return the promise so the caller can wait.
+  */
+ const readyStatePromise = store => next => action => {
+   if (!action.promise) {
+     return next(action)
+   }
+
+   function makeAction(ready, data) {
+     let newAction = Object.assign({}, action, { ready }, data)
+     delete newAction.promise
+     return newAction
+   }
+
+   next(makeAction(false))
+   return action.promise.then(
+     result => next(makeAction(true, { result })),
+     error => next(makeAction(true, { error }))
+   )
+ }
+
+ /**
+  * Lets you dispatch a function instead of an action.
+  * This function will receive `dispatch` and `getState` as arguments.
+  *
+  * Useful for early exits (conditions over `getState()`), as well
+  * as for async control flow (it can `dispatch()` something else).
+  *
+  * `dispatch` will return the return value of the dispatched function.
+  */
+ const thunk = store => next => action =>
+   typeof action === 'function' ?
+     action(store.dispatch, store.getState) :
+     next(action)
+
+
+ // You can use all of them! (It doesn't mean you should.)
+ let todoApp = combineReducers(reducers)
+ let store = createStore(
+   todoApp,
+   applyMiddleware(
+     rafScheduler,
+     timeoutScheduler,
+     thunk,
+     vanillaPromise,
+     readyStatePromise,
+     logger,
+     crashReporter
+   )
+ )
+```

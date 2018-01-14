@@ -1417,3 +1417,164 @@ https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f
 Any component wrapped with connect() call will receive a dispatch function as a prop, and any state it needs from the global state. In most cases you will only pass the first argument to connect(), which is a function we call a selector. This function takes the global Redux store’s state, and returns the props you need for the component. In the simplest case, you can just return the state given to you (i.e. pass identity function), but you may also wish to transform it first.
 
 To make performant memoized transformations with composable selectors, check out reselect. In this example, we won’t use it, but it works great for larger apps.
+
+
+
+### Connect -  Redux’s Container
+
+There needs to be glue that connects the Redux data flow with the React components. The container is meant to be the file that holds all the data and functions required to connect store state and action creators actions to React component props. It is in this file where your action creators are imported, the Redux ‘connect’ function is imported, the parent React component is imported, and any other methods/data are imported (i.e routing and initial server loading).
+
+```
+import {connect} from 'react-redux';
+import Template from '../components/Template.js'
+import {increment, decrement} from '../actions/sidebar.js';
+import {isBrowser} from '../env.js';
+```
+
+Now the connect function. The documentation for connect within Redux is difficult to understand, which creates a sense of mystery. Simply think of this as a component that takes props as parameters, which in return supplies actions and state to the provided React component via props… Confused yet? Well let’s break this down some more.
+
+connect() is a function provided by react-redux. If a component wants to get state updates, it wraps itself using connect(). Then the connect function will set up all the wiring for it to the redux store.
+
+The following shows the connect function breakdown:
+
+```
+connect(mapStateToProps, mapDispatchToProps, mergeProps, options)(component);
+```
+
+Connect returns a function that accepts a react component. It has 4 arguments.
+
+* mapStateToProps - function, mandatory
+* mapDispatchToProps - function or object, mandotory
+* mergeProps — function, optional
+* options — object, optional
+
+When applied to a component, it returns a component connected to the store that renders the specified component.
+
+
+## mapStateToProps
+
+The function `mapStateToProps` connects state from the store to corresponding props. This make it possible to access your reducer state objects from within your React components.
+As connect subscribes to the store automatically, a new render of the connected component triggered anytime a change of state triggers a change of value for any of the properties passed to the component.
+
+`mapStateToProps` returns an object, where keys are the prop names passed to the connected component and the value a reducer function.
+
+```
+const mapStateToProps = ({ reducer1, reducer2}) => ({reducer1, reducer2 });
+```
+
+## mapDispatchToProps
+
+`mapDispatchToProps` can ether be a function or an object.
+
+As the only way to change the application state is by dispatching an action, this allows to create named function for handling dispatch calls (i.e.: action creator).
+
+When the name funtion is called with arguments, the associated named function will be called with the current getState() result and the given action synchronously. Its return value will be considered the next state.
+
+```
+import {actionCreator1, actionCreator2} from '../actions/main.js';
+
+const bindActionsToDispatch = (dispatch) => ({
+    actionCreator1 : () => {dispatch(actionCreator1())},
+    actionCreator2 : (e) => {dispatch(actionCreator2(e))}
+});
+```
+
+### bindActionCreators
+
+`mapDispatchToProps` is not the only way of bind dispatch and action creators, there is another way called `bindActionCreators`.
+
+```
+import { bindActionCreators } from 'redux';
+import * as TodoActionCreators from './TodoActionCreators';
+
+let boundActionCreators = bindActionCreators(TodoActionCreators, dispatch)
+```
+
+The only use case for bindActionCreators is when you want to pass some action creators down to a component that isn't aware of Redux, and you don't want to pass dispatch or the Redux store to it.
+
+## mergeProps
+
+`mergeProps` is an optional parameter and is a function. The documentation on this particular function does not explain much as to it’s purpose and use cases. Hence adding to the mystery of the connect function.
+
+If it is used, this function is passed the result of `mapStateToProps`(), `mapDispatchToProps`(), and the parent props. With this data available, it is easy to use props inherited from connect’s parent and combine them with an action creator. For example, if you are working with React Router, the variables assigned in the route path are passed as props to the connect function, if it is the connect function’s parent. You could then use those props and pass it along to your action creators to update your store with the needed URL parameters.
+
+```
+const mergeProps = (state, actions, {notebook, note}) => ({
+    ...state,
+    ...actions,
+    onLoad: notebook && note
+      ? () => {
+        return Promise.all([
+          actions.initActiveNotebookAndNote({notebook, note})
+        ])
+      }
+      : actions.onLoad
+})
+```
+
+The above code is receiving state from mapStateToProps, actions from mapDispatchToProps, and is creating a new prop called ‘onLoad’. This prop ‘onLoad’ is combining or ‘merging’ (as it’s name states) props from it’s parent component (React Router) and an action creator together. That action creator can be used to update data within a Reducer:
+
+```
+export const initActiveNotebookAndNote = ({notebook, note}) => ({
+ type: SET_CURRENT_NOTE,
+ notebook,
+ note
+});
+```
+
+## options
+
+The options parameter is an object. It is used to customize the behavior of the connect function. The acceptable ‘options’ are the following:
+
+* pure- Boolean, if true connect() will avoid re-rendering (will not update)
+* areStatesEqual- Compares new store state vs. old*
+* areOwnPropsEqual- Compares new props vs. old*
+* areStatePropsEqual- Compares new mapStateToProps vs. old*
+* areMergedPropsEqual- Compares new mergeProps vs. old*
+
+(*Only when pure functions)
+
+These options are not commonly used and are best explained by Redux:
+
+You may wish to override `areStatesEqual` if your `mapStateToProps` function is computationally expensive and is also only concerned with a small slice of your state. For example: areStatesEqual: (prev, next) => prev.entities.todos === next.entities.todos; this would effectively ignore state changes for everything but that slice of state.
+
+You may wish to override `areStatesEqual` to always return false (areStatesEqual: () => false) if you have impure reducers that mutate your store state. (This would likely impact the other equality checks is well, depending on your mapStateToProps function.)
+
+You may wish to override `areOwnPropsEqual` as a way to whitelist incoming props. You'd also have to implement mapStateToProps, mapDispatchToProps and mergeProps to also whitelist props. (It may be simpler to achieve this other ways, for example by using recompose's mapProps.)
+
+You may wish to override `areStatePropsEqual` to use strictEqual if your mapStateToProps uses a memoized selector that will only return a new object if a relevant prop has changed. This would be a very slight performance improvement, since would avoid extra equality checks on individual props each time mapStateToProps is called.
+
+You may wish to override `areMergedPropsEqual` to implement a deepEqual if your selectors produce complex props. ex: nested objects, new arrays, etc. (The deep equal check should be faster than just re-rendering.)
+
+
+--------
+
+
+Here is a final example that shows the connect function :
+
+```
+import {connect} from 'react-redux';
+import Template from '../components/Template.js';
+import {actionCreator1, actionCreator2} from '../actions/main.js';
+
+const mapStateToProps = ({ reducer1, reducer2}) => ({reducer1, reducer2 });
+
+const bindActionsToDispatch = dispatch => ({
+    actionCreator1 : () => {dispatch(actionCreator1())},
+    actionCreator2 : (e) => {dispatch(actionCreator2(e))}
+});
+
+const mergeProps = (state, actions, {notebook, note}) => ({
+    ...state,
+    ...actions,
+    onLoad: notebook && note
+      ? () => {
+        return (
+          actions.initActiveNotebookAndNote({notebook, note})
+        )
+      }
+      : null
+});
+
+connect(mapStateToProps, mapDispatchToProps, mergeProps, { withRef: true })(Template);
+```
