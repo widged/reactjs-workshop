@@ -13,7 +13,7 @@ Redux is useful for React applications, but React is not a requirement!  [source
 
 Managing state in an application is critical, and is often done haphazardly. Redux provides a state container for JavaScript applications that will help your applications behave consistently.
 
-The state is held within stores. Dispatched actions cause this state to change, afterwhich the views that listen to these state changes will re-render themselves accordingly. Data is made to flow in a single direction. This greatly minimises the risk of unwanted effect as the application grows in complexity. 
+The state is held within stores. Redux is makes state changes predictable and transparent. The state can change only as a result of actions dispatched to it. Every time an action is dispatched, the new state is computed and saved, afterwhich the views that listen to these state changes will re-render themselves accordingly. Data is made to flow in a single direction. This greatly minimises the risk of unwanted effect as the application grows in complexity. 
 
 One of the difficulties with understanding Redux is the necessity to cover production ready techniques for building your React and Redux applications: Advanced state management, middleware, React Router integration. [source](https://egghead.io/courses/building-react-applications-with-idiomatic-redux). 
 
@@ -45,7 +45,7 @@ This should all become clearer as we start to convert our application to use Red
 
 reducer:: state -> action -> state
 
-1. State (store). All of the application's state is held in a single javascript object. The state is *read-only*. It cannot be edited directly. The only way to apply changes is by sending change requests by dispatching actions. 
+1. State (store). All of the application's state is held in a single javascript object. The state is *read-only*. It cannot be edited directly. The state can only change as a consequence of specific actions being dispatched to the store.
 
 2. Action. An action is a special type of event. It is defined by a type (unique identifier) and a payload. You might dispatch an action that simply sends a message to remove an item in a list which could look like this: `{type: types.DELETE_ITEM, id: 1}`
 
@@ -66,9 +66,10 @@ In Redux, your entire application state is managed by a single store. You can th
 
 1. You call store.dispatch(action).
 
-The only way you can modify your application state in Redux is by having Actions dispatched to the Store. Actions are simply POJOs (plain old JavaScript objects). It’s important to note that actions are declarative — they describe what you can do in your app but not how to do it. Actions are purely data! 
 
-An action is a plain object describing a change. For example:
+Actions are the only way to get data into the store, so any data, whether from the UI events, network callbacks, or other sources such as WebSockets needs to eventually be dispatched as actions. 
+
+Actions are simply POJOs (plain old JavaScript objects) describing a change in a way that makes sense for your application. For example:
 
 ```
  { type: 'LIKE_ARTICLE', articleId: 42 }
@@ -76,7 +77,11 @@ An action is a plain object describing a change. For example:
  { type: 'ADD_TODO', text: 'Read the Redux docs.' }
 ```
 
-Think of an action as a very brief snippet of news. “Mary liked article 42.” or “‘Read the Redux docs.' was added to the list of todos.”
+Actions must have a type field that indicates the type of action being performed. Types can be defined as constants and imported from another module. It's better to use strings for type than Symbols because strings are serializable. Other than type, the structure of an action object is really up to you. If you're interested, check out Flux Standard Action for recommendations on how actions could be constructed.
+
+Actions describe the fact that something happened. Think of an action as a very brief snippet of news. “Mary liked article 42.” or “‘Read the Redux docs.' was added to the list of todos.”. 
+
+Actions are purely data! They are strictly declarative — they describe what you can do in your app. Actions do not specify how the application's state changes in response. This is the job of reducers. 
 
 You can call store.dispatch(action) from anywhere in your app, including components and XHR callbacks, or even at scheduled intervals.
 
