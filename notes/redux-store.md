@@ -3,7 +3,8 @@
 The Redux store is just a plain object with a few methods.
 
 
-In Redux, by convention, a store holds the whole state tree of your application. A store is not a class. It's just an object with a few methods on it. It's a good idea to think of the shape of the state tree before writing any code. 
+In Redux, by convention, a store holds the whole state tree of your application. A store is not a class. It's just an object with a few methods on it. It's a good idea to think of the shape of the state tree before writing any code. App state is a first class citizen, structure it like an in-memory database.
+
 
 The only way to change the state inside the store is to dispatch an action on it.
 
@@ -236,4 +237,3 @@ If you have nested entities, or if you let users edit received entities, you sho
 ## Normalizing entities
 
 For dynamic applications, it can be useful to normalize entities.
-
