@@ -26,6 +26,94 @@ This is one of the key ideas of Redux. The state object isn’t manipulated dire
 
 The reducers pass their copies back to the root reducer, which pastes the copies together to form the updated state object. Then the root reducer sends the new state object back to the store, and the store makes it the new official state.
 
+`combineReducers()` is used for reducer composition.
+
+```
+// reducers.js
+import { combineReducers } from 'redux'
+import {
+  SELECT_SUBREDDIT, INVALIDATE_SUBREDDIT,
+  REQUEST_POSTS, RECEIVE_POSTS
+} from '../actions'
+
+function selectedSubreddit(state = 'reactjs', action) {
+  switch (action.type) {
+    case SELECT_SUBREDDIT:
+      return action.subreddit
+    default:
+      return state
+  }
+}
+
+function posts(state = {
+  isFetching: false,
+  didInvalidate: false,
+  items: []
+}, action) {
+  switch (action.type) {
+    case INVALIDATE_SUBREDDIT:
+      return Object.assign({}, state, {
+        didInvalidate: true
+      })
+    case REQUEST_POSTS:
+      return Object.assign({}, state, {
+        isFetching: true,
+        didInvalidate: false
+      })
+    case RECEIVE_POSTS:
+      return Object.assign({}, state, {
+        isFetching: false,
+        didInvalidate: false,
+        items: action.posts,
+        lastUpdated: action.receivedAt
+      })
+    default:
+      return state
+  }
+}
+
+function postsBySubreddit(state = {}, action) {
+  switch (action.type) {
+    case INVALIDATE_SUBREDDIT:
+    case RECEIVE_POSTS:
+    case REQUEST_POSTS:
+      return Object.assign({}, state, {
+        [action.subreddit]: posts(state[action.subreddit], action)
+      })
+    default:
+      return state
+  }
+}
+
+const rootReducer = combineReducers({
+  postsBySubreddit,
+  selectedSubreddit
+})
+
+export default rootReducer
+```
+
+In this code, there are two interesting parts:
+
+We use ES6 computed property syntax so we can update state[action.subreddit] with Object.assign() in a terse way. This:
+
+```
+return Object.assign({}, state, {
+  [action.subreddit]: posts(state[action.subreddit], action)
+})
+```
+
+is equivalent to this:
+
+```
+let nextState = {}
+nextState[action.subreddit] = posts(state[action.subreddit], action)
+return Object.assign({}, state, nextState)
+```
+
+We extracted posts(state, action) that manages the state of a specific post list. This is just reducer composition! It is our choice how to split the reducer into smaller reducers, and in this case, we're delegating updating items inside an object to a posts reducer. The real world example goes even further, showing how to create a reducer factory for parameterized pagination reducers.
+Remember that reducers are just functions, so you can use functional composition and higher-order functions as much as you feel comfortable.
+
 ## API
 
 ### combineReducers

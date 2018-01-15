@@ -144,8 +144,96 @@ unsubscribe()
 
 ## Tips
 
+### Avoid multiple levels of nesting
+
 We suggest that you keep your state as normalized as possible, without any nesting. Storing subjects as a hash, keyed by _id yields a much better result. Keep every entity in an object stored with an ID as a key, and use IDs to reference it from other entities, or lists. Think of the app’s state as a database. This approach is described in normalizr’s documentation in detail. For example, keeping todosById: { id -> todo } and todos: array<id> inside the state would be a better idea in a real app, but we’re keeping the example simple. [source](https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f)
 
 If you were to adopt nesting that reflect the hierarchy of UI views, a downside would be that every single time our views change, the store tree  will be re-worked.
 
+Web applications often show lists of things. For example, a list of posts, or a list of friends. You'll need to figure out what sorts of lists your app can show. You want to store them separately in the state, because this way you can cache them and only fetch again if necessary.
+
+Here's what the state shape for a “Reddit headlines” app might look like:
+
+```
+{
+  selectedSubreddit: 'frontend',
+  postsBySubreddit: {
+    frontend: {
+      isFetching: true,
+      didInvalidate: false,
+      items: []
+    },
+    reactjs: {
+      isFetching: false,
+      didInvalidate: false,
+      lastUpdated: 1439478405547,
+      items: [
+        {
+          id: 42,
+          title: 'Confusion about Flux and Relay'
+        },
+        {
+          id: 500,
+          title: 'Creating a Simple Application Using React JS and Flux Architecture'
+        }
+      ]
+    }
+  }
+}
+```
+
+There are a few important bits here:
+
+We store each subreddit's information separately so we can cache every subreddit. When the user switches between them the second time, the update will be instant, and we won't need to refetch unless we want to. Don't worry about all these items being in memory: unless you're dealing with tens of thousands of items, and your user rarely closes the tab, you won't need any sort of cleanup.
+
+For every list of items, you'll want to store isFetching to show a spinner, didInvalidate so you can later toggle it when the data is stale, lastUpdated so you know when it was fetched the last time, and the items themselves. In a real app, you'll also want to store pagination state like fetchedPageCount and nextPageUrl.
+
+Note on Nested Entities
+
+In this example, we store the received items together with the pagination information. However, this approach won't work well if you have nested entities referencing each other, or if you let the user edit items. Imagine the user wants to edit a fetched post, but this post is duplicated in several places in the state tree. This would be really painful to implement.
+
+If you have nested entities, or if you let users edit received entities, you should keep them separately in the state as if it was a database. In pagination information, you would only refer to them by their IDs. This lets you always keep them up to date. The real world example shows this approach, together with normalizr to normalize the nested API responses. With this approach, your state might look like this:
+
+```
+{
+  selectedSubreddit: 'frontend',
+  entities: {
+    users: {
+      2: {
+        id: 2,
+        name: 'Andrew'
+      }
+    },
+    posts: {
+      42: {
+        id: 42,
+        title: 'Confusion about Flux and Relay',
+        author: 2
+      },
+      100: {
+        id: 100,
+        title: 'Creating a Simple Application Using React JS and Flux Architecture',
+        author: 2
+      }
+    }
+  },
+  postsBySubreddit: {
+    frontend: {
+      isFetching: true,
+      didInvalidate: false,
+      items: []
+    },
+    reactjs: {
+      isFetching: false,
+      didInvalidate: false,
+      lastUpdated: 1439478405547,
+      items: [ 42, 100 ]
+    }
+  }
+}
+```
+
+## Normalizing entities
+
+For dynamic applications, it can be useful to normalize entities.
 
