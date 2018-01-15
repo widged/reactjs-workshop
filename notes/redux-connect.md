@@ -1,5 +1,3 @@
-[WIP - Random notes] 
-
 # Redux : Connect
 
 The react-redux library `connect()` method connects a React component to a Redux store. It generates a container component. It takes care of subscribing (responding to state changes) and dispatching for you without having to hook into the React component lifecycle methods (componentDidMount and componentWillUnmount)
@@ -11,9 +9,6 @@ Any component wrapped with connect() call will receive a dispatch function as a 
 Connect is a facade around `connectAdvanced`, providing a convenient API for the most common use cases.
 
 It does not modify the component class passed to it; instead, it returns a new, connected component class for you to use.
-
-
-
 
 It has the following API
 -	mapStateToProps

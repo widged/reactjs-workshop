@@ -12,11 +12,11 @@ When you call an asynchronous API, there are two crucial moments in time: the mo
 
 Each of these two moments usually require a change in the application state; to do that, you need to dispatch normal actions that will be processed by reducers synchronously. Usually, for any API request you'll want to dispatch at least three different kinds of actions:
 
-* An action informing the reducers that the request began. The reducers may handle this action by toggling an isFetching flag in the state. This way the UI knows it's time to show a spinner.
+- An action informing the reducers that the request began. The reducers may handle this action by toggling an isFetching flag in the state. This way the UI knows it's time to show a spinner.
 
-* An action informing the reducers that the request finished successfully. The reducers may handle this action by merging the new data into the state they manage and resetting isFetching. The UI would hide the spinner, and display the fetched data.
+- An action informing the reducers that the request finished successfully. The reducers may handle this action by merging the new data into the state they manage and resetting isFetching. The UI would hide the spinner, and display the fetched data.
 
-* An action informing the reducers that the request failed. The reducers may handle this action by resetting isFetching. Additionally, some reducers may want to store the error message so the UI can display it.
+- An action informing the reducers that the request failed. The reducers may handle this action by resetting isFetching. Additionally, some reducers may want to store the error message so the UI can display it.
 
 
 # Async Flow
@@ -630,4 +630,50 @@ Redux-ORM use cases and basic usage
 Practical Redux, Part 0: Introduction
 First in a series covering Redux techniques based on my own experience
 
+
+
+
+## Asynchronous Middleware
+
+Redux middleware can be used to work with actions that involve some sort of asynchronous execution. 
+
+In particular look at redux-thunk for more details. Let’s say you have an action creator that has some async functionality to get stock quote information:
+
+```
+function fetchQuote(symbol) {
+   requestQuote(symbol);
+   return fetch(`http://www.google.com/finance/info?q=${symbol}`)
+      .then(req => req.json())
+      .then(json => showCurrentQuote(symbol, json));
+
+}
+```
+
+There is no obvious way here to dispatch an action that would be returned from the fetch which is Promise based. Plus we do not have a handle to the dispatch function. Therefore, we can use the redux-thunk middleware to defer execution of these operations. By wrapping the execution in a function you can delay this execution.
+
+```
+function fetchQuote(symbol) {
+  return dispatch => {
+    dispatch(requestQuote(symbol));
+    return fetch(`http://www.google.com/finance/info?q=${symbol}`)
+      .then(req => req.json())
+      .then(json => dispatch(showCurrentQuote(symbol, json)));
+  }
+}
+```
+
+Remember that the applyMiddleware function will inject the dispatch and the getState functions as parameters into the redux-thunk middleware. Now you can dispatch the resultant action objects to your store which contains reducers. Here is the middleware function for redux-thunk that does this for you:
+
+```
+export default function thunkMiddleware({ dispatch, getState }) {
+  return next =>
+     action =>
+       typeof action === ‘function’ ?
+         action(dispatch, getState) :
+         next(action);
+}
+```
+
+
+This should be familiar to you now that you have already seen how Redux middleware works. If the action is a function it will be called with the dispatch and getState function. Otherwise, this is a normal action that needs to be dispatched to the store. Also check out the Async example in the Redux repo for more details. Another middleware alternative for working with Promises in your actions is redux-promise. I think it is just a matter of preference around which middleware solution you choose.
 

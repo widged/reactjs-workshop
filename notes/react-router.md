@@ -1,6 +1,5 @@
 # React Router
 
-
 React Router can be used to do routing with your Redux app. Redux will be the source of truth for your data and React Router will be the source of truth for your URL. In most of the cases, it is fine to have them separate unless you need to time travel and rewind actions that triggers the change URL.
 
 ## Installing React Router
