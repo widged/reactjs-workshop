@@ -1,5 +1,8 @@
 [WIP - Random notes] 
 
+
+# Asynchronous Options in Redux
+
 ## Async Actions
 
 You can return things from thunks. Thunks are basically async action creators. Returning promises from thunks is useful, because then you can chain together async functions.
@@ -102,6 +105,69 @@ export function fetchPosts(subreddit) {
   }
 }
 ```
+
+
+## Asynchronous Middleware
+
+Redux middleware can be used to work with actions that involve some sort of asynchronous execution. 
+
+In particular look at redux-thunk for more details. Let’s say you have an action creator that has some async functionality to get stock quote information:
+
+```
+function fetchQuote(symbol) {
+   requestQuote(symbol);
+   return fetch(`http://www.google.com/finance/info?q=${symbol}`)
+      .then(req => req.json())
+      .then(json => showCurrentQuote(symbol, json));
+
+}
+```
+
+There is no obvious way here to dispatch an action that would be returned from the fetch which is Promise based. Plus we do not have a handle to the dispatch function. Therefore, we can use the redux-thunk middleware to defer execution of these operations. By wrapping the execution in a function you can delay this execution.
+
+```
+function fetchQuote(symbol) {
+  return dispatch => {
+    dispatch(requestQuote(symbol));
+    return fetch(`http://www.google.com/finance/info?q=${symbol}`)
+      .then(req => req.json())
+      .then(json => dispatch(showCurrentQuote(symbol, json)));
+  }
+}
+```
+
+Remember that the applyMiddleware function will inject the dispatch and the getState functions as parameters into the redux-thunk middleware. Now you can dispatch the resultant action objects to your store which contains reducers. Here is the middleware function for redux-thunk that does this for you:
+
+```
+export default function thunkMiddleware({ dispatch, getState }) {
+  return next =>
+     action =>
+       typeof action === ‘function’ ?
+         action(dispatch, getState) :
+         next(action);
+}
+```
+
+
+This should be familiar to you now that you have already seen how Redux middleware works. If the action is a function it will be called with the dispatch and getState function. Otherwise, this is a normal action that needs to be dispatched to the store. Also check out the Async example in the Redux repo for more details. Another middleware alternative for working with Promises in your actions is redux-promise. I think it is just a matter of preference around which middleware solution you choose.
+
+
+
+### Other asynchronous options
+
+
+Thunk middleware isn't the only way to orchestrate asynchronous actions in Redux:
+
+* You can use redux-promise or redux-promise-middleware to dispatch Promises instead of functions.
+* You can use redux-observable to dispatch Observables.
+* You can use the redux-saga middleware to build more complex asynchronous actions.
+* You can use the redux-pack middleware to dispatch promise-based asynchronous actions.
+* You can even write a custom middleware to describe calls to your API, like the real world example does.
+
+It is up to you to try a few options, choose a convention you like, and follow it, whether with, or without the middleware.
+
+
+
 
 ### Note on fetch
 
@@ -631,49 +697,4 @@ Practical Redux, Part 0: Introduction
 First in a series covering Redux techniques based on my own experience
 
 
-
-
-## Asynchronous Middleware
-
-Redux middleware can be used to work with actions that involve some sort of asynchronous execution. 
-
-In particular look at redux-thunk for more details. Let’s say you have an action creator that has some async functionality to get stock quote information:
-
-```
-function fetchQuote(symbol) {
-   requestQuote(symbol);
-   return fetch(`http://www.google.com/finance/info?q=${symbol}`)
-      .then(req => req.json())
-      .then(json => showCurrentQuote(symbol, json));
-
-}
-```
-
-There is no obvious way here to dispatch an action that would be returned from the fetch which is Promise based. Plus we do not have a handle to the dispatch function. Therefore, we can use the redux-thunk middleware to defer execution of these operations. By wrapping the execution in a function you can delay this execution.
-
-```
-function fetchQuote(symbol) {
-  return dispatch => {
-    dispatch(requestQuote(symbol));
-    return fetch(`http://www.google.com/finance/info?q=${symbol}`)
-      .then(req => req.json())
-      .then(json => dispatch(showCurrentQuote(symbol, json)));
-  }
-}
-```
-
-Remember that the applyMiddleware function will inject the dispatch and the getState functions as parameters into the redux-thunk middleware. Now you can dispatch the resultant action objects to your store which contains reducers. Here is the middleware function for redux-thunk that does this for you:
-
-```
-export default function thunkMiddleware({ dispatch, getState }) {
-  return next =>
-     action =>
-       typeof action === ‘function’ ?
-         action(dispatch, getState) :
-         next(action);
-}
-```
-
-
-This should be familiar to you now that you have already seen how Redux middleware works. If the action is a function it will be called with the dispatch and getState function. Otherwise, this is a normal action that needs to be dispatched to the store. Also check out the Async example in the Redux repo for more details. Another middleware alternative for working with Promises in your actions is redux-promise. I think it is just a matter of preference around which middleware solution you choose.
 
